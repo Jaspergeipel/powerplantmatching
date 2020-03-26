@@ -78,51 +78,54 @@ def to_pypsa_network(df, network, buslist=None):
                                              'Generator')
     network.import_components_from_dataframe(df[df['component'] == 'Store'],
                                              'StorageUnit')
-def to_Balmorel(df=None, use_scaled_capacity=False, baseyear=2015):
-       
-    if df is None:
-        from .collection import matched_data
-        df = matched_data()
-        if df is None:
-            raise RuntimeError("The data to be exported does not yet exist.")
-    df = df.loc[(df.YearCommissioned.isnull()) |
-                (df.YearCommissioned <= baseyear)]
-    plausible = True
-    df=pm.heuristics.fill_missing_commyears(df)
-    df=pm.heuristics.remove_oversea_areas(df)
-    if use_scaled_capacity: df=pm.heuristics.rescale_capacities_to_country_totals(df)
-
-    # Insert periodwise capacities
-    df.loc[:, baseyear] = df.loc[:, 'Capacity']
-    for yr in range(2020, 2055, 5):
-        #df.iloc[yr <= (df.loc[:, 'YearCommissioned'] + 60)] = df.loc[:, 'Capacity']
-        
-        df.loc[(yr <= (df['YearCommissioned'] + 60)),yr] = df['Capacity']
-        df[2016]=df[2015]
-        df[yr].fillna(0)
-        
-    #lifetime based on Retrofit still required
-    df.filter(['a', 'b'])
     
-    #drop columns not necessary for balmorel
-    df1=df.drop(columns=['Duration', 'Volume_Mm3', 'DamHeight_m', 'Retrofit', 'lat', 'lon', 'projectID', 'matches'])
-    df1=df1.loc[~df['Fueltype'].isin(['Bioenergy','Waste', 'Oil'])]
-    #groupby for number of combinations check
-    df_combinations=df1.groupby(['Fueltype','Technology', 'Set']).size().reset_index().rename(columns={0:'count'})     
-    
-     #df=df.YearCommissioned.fillna(df.groupby(['Country', 'Fueltype','Set']))
-    #                                  .YearCommissioned
-    #                                  .transform('mean'), inplace=True)
-                                                      
-    #df_bal.loc['K5','classification']=                     
-    #{} {} is {} years old.“ format(fname, lname, age)    
-       
-    if plausible:
-        df.to_excel(pm.core._data_out('Export_conv_PP_Balmorel.xlsx'))
-        df.to_csv(pm.core._data_out('Export_conv_PP_Balmorel.inc'), header=None, index=None, sep=' ', mode='a')
-    return df    
-
-#df1=pm.heuristics.fill_missing_decommyears(df1)
+# =============================================================================
+# def to_Balmorel(df=None, use_scaled_capacity=False, baseyear=2015):
+#        
+#     if df is None:
+#         from .collection import matched_data
+#         df = matched_data()
+#         if df is None:
+#             raise RuntimeError("The data to be exported does not yet exist.")
+#     df = df.loc[(df.YearCommissioned.isnull()) |
+#                 (df.YearCommissioned <= baseyear)]
+#     plausible = True
+#     df=pm.heuristics.fill_missing_commyears(df)
+#     df=pm.heuristics.remove_oversea_areas(df)
+#     if use_scaled_capacity: df=pm.heuristics.rescale_capacities_to_country_totals(df)
+# 
+#     # Insert periodwise capacities
+#     df.loc[:, baseyear] = df.loc[:, 'Capacity']
+#     for yr in range(2020, 2055, 5):
+#         #df.iloc[yr <= (df.loc[:, 'YearCommissioned'] + 60)] = df.loc[:, 'Capacity']
+#         
+#         df.loc[(yr <= (df['YearCommissioned'] + 60)),yr] = df['Capacity']
+#         df[2016]=df[2015]
+#         df[yr].fillna(0)
+#         
+#     #lifetime based on Retrofit still required
+#     df.filter(['a', 'b'])
+#     
+#     #drop columns not necessary for balmorel
+#     df1=df.drop(columns=['Duration', 'Volume_Mm3', 'DamHeight_m', 'Retrofit', 'lat', 'lon', 'projectID', 'matches'])
+#     df1=df1.loc[~df['Fueltype'].isin(['Bioenergy','Waste', 'Oil'])]
+#     #groupby for number of combinations check
+#     df_combinations=df1.groupby(['Fueltype','Technology', 'Set']).size().reset_index().rename(columns={0:'count'})     
+#     
+#     #df=df.YearCommissioned.fillna(df.groupby(['Country', 'Fueltype','Set']))
+#     #                                  .YearCommissioned
+#     #                                  .transform('mean'), inplace=True)
+#                                                       
+#     #df_bal.loc['K5','classification']=                     
+#     #{} {} is {} years old.“ format(fname, lname, age)    
+#        
+#     if plausible:
+#         df.to_excel(pm.core._data_out('Export_conv_PP_Balmorel.xlsx'))
+#         df.to_csv(pm.core._data_out('Export_conv_PP_Balmorel.inc'), header=None, index=None, sep=' ', mode='a')
+#     return df
+# 
+# #df1=pm.heuristics.fill_missing_decommyears(df1)
+# =============================================================================
 
 def to_TIMES(df=None, use_scaled_capacity=False, baseyear=2015):
     """
